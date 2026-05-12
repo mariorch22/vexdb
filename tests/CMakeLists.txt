@@ -10,6 +10,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(vexdb_tests
     core_types_test.cpp
     core_distance_test.cpp
+    core_sq8_test.cpp
 )
 
 target_link_libraries(vexdb_tests PRIVATE vexdb GTest::gtest_main)

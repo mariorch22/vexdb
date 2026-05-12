@@ -11,6 +11,7 @@ add_executable(vexdb_tests
     core_types_test.cpp
     core_distance_test.cpp
     core_sq8_test.cpp
+    store_in_memory_store_test.cpp
 )
 
 target_link_libraries(vexdb_tests PRIVATE vexdb GTest::gtest_main)

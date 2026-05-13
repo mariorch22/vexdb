@@ -23,6 +23,7 @@ class SealedSegment {
 
     std::size_t size() const;
     Dim dimensions() const;
+    const IdMapping& id_mapping() const { return id_mapping_; }
 
    private:
     SealedSegment() = default;

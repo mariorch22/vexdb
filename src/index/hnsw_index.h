@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <limits>
 #include <queue>
 #include <random>
@@ -169,6 +171,7 @@ class HnswIndex {
     std::uniform_real_distribution<float> level_dist_{0.0f, 1.0f};
 
     // Generation-based visited tracking: avoids clearing the array each search.
+    // Not thread-safe: shared scratch state for single-threaded search.
     mutable std::vector<uint32_t> visited_gen_;
     mutable uint32_t current_gen_ = 0;
 
@@ -280,7 +283,9 @@ class HnswIndex {
             auto neighbors = get_neighbors(cid, layer);
 
             for (Offset nb : neighbors) {
+#if defined(__GNUC__) || defined(__clang__)
                 __builtin_prefetch(store_.get_vector(nb), 0, 0);
+#endif
             }
 
             for (Offset nb : neighbors) {

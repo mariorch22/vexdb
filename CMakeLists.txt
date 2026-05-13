@@ -51,6 +51,7 @@ target_include_directories(vexdb PUBLIC
 )
 
 target_compile_features(vexdb PUBLIC cxx_std_20)
+set_target_properties(vexdb PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(COMPILER_SUPPORTS_AVX2 AND COMPILER_SUPPORTS_FMA)
     target_compile_options(vexdb PRIVATE -mavx2 -mfma)
@@ -66,4 +67,10 @@ endif()
 # --- Benchmarks ---
 if(VEXDB_BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
+endif()
+
+# --- Python bindings ---
+option(VEXDB_BUILD_PYTHON "Build Python bindings" OFF)
+if(VEXDB_BUILD_PYTHON)
+    add_subdirectory(python)
 endif()

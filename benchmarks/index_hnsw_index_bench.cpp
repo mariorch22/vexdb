@@ -46,6 +46,20 @@ static void BM_HnswInsert_10K_128d(benchmark::State& state) {
     state.SetItemsProcessed(state.iterations() * 10000);
 }
 
+static void BM_HnswInsert_10K_128d_EF64(benchmark::State& state) {
+    for (auto _ : state) {
+        state.PauseTiming();
+        auto store = make_store(10000, 128);
+        vexdb::HnswIndex index(store, 16, 64);
+        state.ResumeTiming();
+
+        for (vexdb::Offset i = 0; i < 10000; i++) {
+            index.insert();
+        }
+    }
+    state.SetItemsProcessed(state.iterations() * 10000);
+}
+
 // --- Search benchmarks ---
 
 static void BM_HnswSearch_10K_128d(benchmark::State& state) {
@@ -100,6 +114,20 @@ static void BM_HnswInsert_100K_128d(benchmark::State& state) {
     state.SetItemsProcessed(state.iterations() * 100000);
 }
 
+static void BM_HnswInsert_100K_128d_EF64(benchmark::State& state) {
+    for (auto _ : state) {
+        state.PauseTiming();
+        auto store = make_store(100000, 128);
+        vexdb::HnswIndex index(store, 16, 64);
+        state.ResumeTiming();
+
+        for (vexdb::Offset i = 0; i < 100000; i++) {
+            index.insert();
+        }
+    }
+    state.SetItemsProcessed(state.iterations() * 100000);
+}
+
 static void BM_HnswSearch_100K_128d(benchmark::State& state) {
     auto store = make_store(100000, 128);
     vexdb::HnswIndex index(store, 16, 200);
@@ -113,8 +141,10 @@ static void BM_HnswSearch_100K_128d(benchmark::State& state) {
 }
 
 BENCHMARK(BM_HnswInsert_10K_128d)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_HnswInsert_10K_128d_EF64)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_HnswSearch_10K_128d);
 BENCHMARK(BM_HnswSearch_10K_128d_EF200);
 BENCHMARK(BM_FlatSearch_10K_128d);
 BENCHMARK(BM_HnswInsert_100K_128d)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_HnswInsert_100K_128d_EF64)->Unit(benchmark::kMillisecond);
 BENCHMARK(BM_HnswSearch_100K_128d);

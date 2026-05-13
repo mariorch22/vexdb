@@ -16,6 +16,7 @@ add_executable(vexdb_tests
     index_flat_index_test.cpp
     index_hnsw_index_test.cpp
     segment_id_mapping_test.cpp
+    segment_active_segment_test.cpp
 )
 
 target_link_libraries(vexdb_tests PRIVATE vexdb GTest::gtest_main)

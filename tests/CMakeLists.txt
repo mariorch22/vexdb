@@ -18,6 +18,7 @@ add_executable(vexdb_tests
     segment_id_mapping_test.cpp
     segment_active_segment_test.cpp
     segment_sealed_segment_test.cpp
+    segment_segment_manager_test.cpp
     persistence_test.cpp
 )
 

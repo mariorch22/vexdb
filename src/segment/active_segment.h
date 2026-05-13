@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <vector>
 
+#include "core/search_result.h"
 #include "core/types.h"
 #include "index/hnsw_index.h"
 #include "segment/id_mapping.h"
@@ -32,6 +33,12 @@ class ActiveSegment {
     const IdMapping& id_mapping() const { return id_mapping_; }
 
    private:
+    friend class SegmentManager;
+
+    InMemoryStore take_store() { return std::move(store_); }
+    HnswGraph take_graph() { return std::move(index_.graph()); }
+    IdMapping take_id_mapping() { return std::move(id_mapping_); }
+
     InMemoryStore store_;
     HnswIndex<InMemoryStore> index_;
     IdMapping id_mapping_;

@@ -11,6 +11,9 @@
 
 namespace vexdb {
 
+// Bound for per-node HNSW level from disk (defense against corrupt hnsw.bin).
+constexpr int k_max_plausible_hnsw_node_level = 64;
+
 static HnswGraph load_hnsw(const std::string& path) {
     std::ifstream in(path, std::ios::binary);
     if (!in) throw std::runtime_error("load: cannot open " + path);
@@ -34,7 +37,7 @@ static HnswGraph load_hnsw(const std::string& path) {
         in.read(reinterpret_cast<char*>(&level), sizeof(level));
         if (!in) throw std::runtime_error("load: truncated HNSW node data");
 
-        if (level < 0 || level > 64) {
+        if (level < 0 || level > k_max_plausible_hnsw_node_level) {
             throw std::runtime_error("load: implausible HNSW level");
         }
 

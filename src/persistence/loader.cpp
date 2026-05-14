@@ -34,6 +34,10 @@ static HnswGraph load_hnsw(const std::string& path) {
         in.read(reinterpret_cast<char*>(&level), sizeof(level));
         if (!in) throw std::runtime_error("load: truncated HNSW node data");
 
+        if (level < 0 || level > 64) {
+            throw std::runtime_error("load: implausible HNSW level");
+        }
+
         graph.levels.push_back(level);
 
         int32_t l0_count = 0;
@@ -56,6 +60,9 @@ static HnswGraph load_hnsw(const std::string& path) {
                 int32_t count = 0;
                 in.read(reinterpret_cast<char*>(&count), sizeof(count));
                 if (!in) throw std::runtime_error("load: truncated HNSW upper layer count");
+                if (count < 0 || count > graph.m) {
+                    throw std::runtime_error("load: invalid HNSW upper layer neighbor count");
+                }
                 graph.upper.back()[layer - 1].resize(count);
                 in.read(reinterpret_cast<char*>(graph.upper.back()[layer - 1].data()),
                         count * sizeof(Offset));

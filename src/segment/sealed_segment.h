@@ -4,10 +4,10 @@
 #include <memory>
 #include <vector>
 
+#include "core/query_result.h"
 #include "core/search_result.h"
 #include "core/types.h"
 #include "index/hnsw_index.h"
-#include "segment/active_segment.h"
 #include "segment/id_mapping.h"
 #include "store/in_memory_store.h"
 #include "store/mmap_store.h"
@@ -19,7 +19,8 @@ class SealedSegment {
     static SealedSegment from_memory(InMemoryStore store, HnswGraph graph, IdMapping id_mapping);
     static SealedSegment from_mmap(MmapStore store, HnswGraph graph, IdMapping id_mapping);
 
-    std::vector<QueryResult> search(const float* query, std::size_t k, int ef_search = 128) const;
+    [[nodiscard]] std::vector<QueryResult> search(const float* query, std::size_t k,
+                                                  int ef_search = 128) const;
 
     std::size_t size() const;
     Dim dimensions() const;
@@ -41,7 +42,8 @@ class SealedSegment {
         Store store;
         HnswIndex<Store> index;
 
-        TypedBackend(Store s, int m) : store(std::move(s)), index(store, m) {}
+        TypedBackend(Store s, HnswGraph graph)
+            : store(std::move(s)), index(store, std::move(graph)) {}
 
         std::vector<SearchResult> search(const float* query, std::size_t k,
                                          int ef_search) const override {

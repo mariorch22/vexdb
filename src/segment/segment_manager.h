@@ -15,17 +15,18 @@ namespace vexdb {
 class SegmentManager {
    public:
     // Create a new database at the given path (or in-memory if path is empty).
-    SegmentManager(Dim dim, std::size_t segment_capacity, const std::string& db_path = "",
-                   int m = 16, int ef_construction = 200);
+    explicit SegmentManager(Dim dim, std::size_t segment_capacity, const std::string& db_path = "",
+                            int m = 16, int ef_construction = 200);
 
     void insert(VectorId user_id, const float* data);
-    std::vector<QueryResult> search(const float* query, std::size_t k, int ef_search = 128) const;
+    [[nodiscard]] std::vector<QueryResult> search(const float* query, std::size_t k,
+                                                  int ef_search = 128) const;
 
     // Flush: persist the active segment and write segments.json.
     void save();
 
     // Load an existing database from disk.
-    static SegmentManager load(const std::string& path);
+    [[nodiscard]] static SegmentManager load(const std::string& path);
 
     std::size_t total_vectors() const;
     std::size_t segment_count() const;

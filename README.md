@@ -13,7 +13,7 @@ graph LR
 
 | Layer | Contents |
 |---|---|
-| **core** | types, L2 distance (AVX2 + scalar), SQ8 quantization |
+| **core** | types, L2 distance (AVX2 + scalar, compile-time dispatch), SQ8 quantization |
 | **store** | VectorStore concept, InMemoryStore, MmapStore |
 | **index** | HnswIndex\<Store\>, FlatIndex\<Store\> |
 | **segment** | ActiveSegment, SealedSegment, SegmentManager |
@@ -22,6 +22,10 @@ graph LR
 Templates live in `store/` and `index/`. Everything from `segment/` up exposes only concrete types.
 
 See [docs/PRD.md](docs/PRD.md) for the full design rationale.
+
+## Code style
+
+Code follows STL/snake_case naming convention: types in `PascalCase`, functions and variables in `snake_case`, namespace `vexdb` in lowercase.
 
 ## Build
 

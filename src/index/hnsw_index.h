@@ -41,7 +41,7 @@ struct HnswGraph {
 template <VectorStore Store>
 class HnswIndex {
    public:
-    HnswIndex(const Store& store, int m, int ef_construction = 200)
+    explicit HnswIndex(const Store& store, int m, int ef_construction = 200)
         : store_(store), ef_construction_(ef_construction) {
         if (m <= 1) throw std::invalid_argument("HnswIndex: m must be > 1");
         if (ef_construction <= 0)
@@ -49,9 +49,16 @@ class HnswIndex {
         graph_.m = m;
     }
 
+    HnswIndex(const Store& store, HnswGraph graph)
+        : store_(store), graph_(std::move(graph)), ef_construction_(0) {
+        resize_visited(graph_.size());
+    }
+
+    // Move the graph out. Index is invalid after this call.
+    [[nodiscard]] HnswGraph take_graph() { return std::move(graph_); }
+
     // Access to graph structure (for persistence and testing).
-    const HnswGraph& graph() const { return graph_; }
-    HnswGraph& graph() { return graph_; }
+    [[nodiscard]] const HnswGraph& graph() const { return graph_; }
 
     // ── Insert ───────────────────────────────────────────────
 
@@ -138,7 +145,8 @@ class HnswIndex {
 
     // ── Search ───────────────────────────────────────────────
 
-    std::vector<SearchResult> search(const float* query, std::size_t k, int ef_search = 64) const {
+    [[nodiscard]] std::vector<SearchResult> search(const float* query, std::size_t k,
+                                                   int ef_search = 64) const {
         if (graph_.empty || k == 0) return {};
 
         ef_search = std::max(static_cast<int>(k), ef_search);
@@ -167,6 +175,8 @@ class HnswIndex {
     const Store& store_;
     HnswGraph graph_;
     int ef_construction_;
+
+    // Fixed seed for reproducible graph construction.
     std::mt19937 rng_{42};
     std::uniform_real_distribution<float> level_dist_{0.0f, 1.0f};
 
@@ -323,6 +333,7 @@ class HnswIndex {
 
     // ── Neighbor selection heuristic ────────────────────────
 
+    // Expects candidates sorted by distance to base (closest first).
     std::vector<Offset> select_neighbors_heuristic(const float* base,
                                                    const std::vector<Offset>& candidates,
                                                    int m) const {

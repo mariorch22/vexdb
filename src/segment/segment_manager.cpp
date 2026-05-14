@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <stdexcept>
 
 #include "persistence/loader.h"
@@ -54,16 +55,18 @@ std::vector<QueryResult> SegmentManager::search(const float* query, std::size_t 
     return all;
 }
 
+// B1: seal_active — split take_* into local variables to enforce evaluation order
 void SegmentManager::seal_active() {
     if (!db_path_.empty()) {
-        // Serialize to disk, then load as mmap-backed sealed segment.
         std::string seg_dir = db_path_ + "/segment_" + std::to_string(sealed_.size());
         serialize_segment(*active_, seg_dir);
         sealed_.push_back(load_segment_mmap(seg_dir));
     } else {
-        // In-memory only: move components directly.
-        sealed_.push_back(SealedSegment::from_memory(active_->take_store(), active_->take_graph(),
-                                                     active_->take_id_mapping()));
+        auto store = active_->take_store();
+        auto graph = active_->take_graph();
+        auto ids = active_->take_id_mapping();
+        sealed_.push_back(
+            SealedSegment::from_memory(std::move(store), std::move(graph), std::move(ids)));
     }
     active_ = std::make_unique<ActiveSegment>(dim_, segment_capacity_, m_, ef_construction_);
 }
@@ -92,6 +95,7 @@ void SegmentManager::write_segments_json(std::size_t total) const {
     if (!out) throw std::runtime_error("save: cannot write segments.json");
 
     out << "{\n";
+    out << "  \"version\": 1,\n";
     out << "  \"dim\": " << dim_ << ",\n";
     out << "  \"segment_capacity\": " << segment_capacity_ << ",\n";
     out << "  \"m\": " << m_ << ",\n";
@@ -106,22 +110,29 @@ SegmentManager SegmentManager::load(const std::string& path) {
 
     std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 
-    auto extract_int = [&](const std::string& key) -> int {
+    auto extract_uint = [&](const std::string& key) -> unsigned long long {
         auto pos = content.find("\"" + key + "\"");
         if (pos == std::string::npos) throw std::runtime_error("load: missing key " + key);
         pos = content.find(':', pos);
-        return std::stoi(content.substr(pos + 1));
+        auto val = std::stoull(content.substr(pos + 1));
+        return val;
     };
 
-    Dim dim = static_cast<Dim>(extract_int("dim"));
-    auto capacity = static_cast<std::size_t>(extract_int("segment_capacity"));
-    int m = extract_int("m");
-    int ef = extract_int("ef_construction");
-    int seg_count = extract_int("segment_count");
+    Dim dim = static_cast<Dim>(extract_uint("dim"));
+    auto capacity = static_cast<std::size_t>(extract_uint("segment_capacity"));
+    auto m = static_cast<int>(extract_uint("m"));
+    auto ef = static_cast<int>(extract_uint("ef_construction"));
+
+    const unsigned long long seg_count_raw = extract_uint("segment_count");
+    if (seg_count_raw >
+        static_cast<unsigned long long>((std::numeric_limits<std::size_t>::max)())) {
+        throw std::runtime_error("load: segment_count out of range");
+    }
+    const std::size_t seg_count = static_cast<std::size_t>(seg_count_raw);
 
     SegmentManager mgr(dim, capacity, path, m, ef);
 
-    for (int i = 0; i < seg_count; i++) {
+    for (std::size_t i = 0; i < seg_count; i++) {
         mgr.sealed_.push_back(load_segment_mmap(path + "/segment_" + std::to_string(i)));
         for (VectorId id : mgr.sealed_.back().id_mapping().offset_to_id()) {
             mgr.all_ids_.insert(id);

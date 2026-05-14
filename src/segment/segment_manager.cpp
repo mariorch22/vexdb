@@ -94,6 +94,7 @@ void SegmentManager::write_segments_json(std::size_t total) const {
     if (!out) throw std::runtime_error("save: cannot write segments.json");
 
     out << "{\n";
+    out << "  \"version\": 1,\n";
     out << "  \"dim\": " << dim_ << ",\n";
     out << "  \"segment_capacity\": " << segment_capacity_ << ",\n";
     out << "  \"m\": " << m_ << ",\n";

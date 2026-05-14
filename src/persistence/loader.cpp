@@ -1,8 +1,8 @@
 #include "persistence/loader.h"
 
-#include <cstring>
 #include <fstream>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 #include "persistence/format.h"

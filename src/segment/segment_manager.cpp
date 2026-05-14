@@ -54,16 +54,18 @@ std::vector<QueryResult> SegmentManager::search(const float* query, std::size_t 
     return all;
 }
 
+// B1: seal_active — split take_* into local variables to enforce evaluation order
 void SegmentManager::seal_active() {
     if (!db_path_.empty()) {
-        // Serialize to disk, then load as mmap-backed sealed segment.
         std::string seg_dir = db_path_ + "/segment_" + std::to_string(sealed_.size());
         serialize_segment(*active_, seg_dir);
         sealed_.push_back(load_segment_mmap(seg_dir));
     } else {
-        // In-memory only: move components directly.
-        sealed_.push_back(SealedSegment::from_memory(active_->take_store(), active_->take_graph(),
-                                                     active_->take_id_mapping()));
+        auto store = active_->take_store();
+        auto graph = active_->take_graph();
+        auto ids = active_->take_id_mapping();
+        sealed_.push_back(
+            SealedSegment::from_memory(std::move(store), std::move(graph), std::move(ids)));
     }
     active_ = std::make_unique<ActiveSegment>(dim_, segment_capacity_, m_, ef_construction_);
 }

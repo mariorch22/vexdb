@@ -50,6 +50,7 @@ Secondary audience: developers who want an embeddable vector search library for 
 
 - **Parallel search**: Thread pool for concurrent search across sealed segments.
 - **Pluggable distance functions**: Template parameter on `HnswIndex` and `FlatIndex` for L2, cosine, and inner product. Required foundation for SQ8 integration.
+- **Pluggable index type**: Template `Segment` over the index type (`HnswIndex` / `FlatIndex`) so users can choose brute-force for small segments where HNSW overhead isn't worth it. Done in the same template-parameter pass as `DistanceFunc` — `Segment<IndexType, DistanceFunc>` — to avoid two separate refactors.
 - **SQ8 integration**: Implement a quantized store type and asymmetric distance dispatch (float32 query vs. uint8 database vectors). Requires pluggable distance functions above.
 - **Product Quantization (PQ)**: Compressed vector representation with asymmetric distance computation for reduced memory footprint and faster scan.
 - **Benchmarking suite**: Automated recall/latency/throughput measurement on SIFT1M with CI integration.
@@ -126,7 +127,7 @@ segment/       → ActiveSegment, SealedSegment, SegmentManager (concrete types)
 persistence/   → Serializer, Loader, VEX0 format definitions
 ```
 
-Templates live in store/ and index/. segment/ and persistence/ expose only concrete types — the template boundary is sealed at the segment layer.
+Templates live in store/ and index/. segment/ and persistence/ expose only concrete types — the template boundary is sealed at the segment layer. In v0.2 `Segment` is templatized over both `IndexType` (`HnswIndex` / `FlatIndex`) and `DistanceFunc` in a single pass, keeping the two concerns orthogonal without layering separate refactors.
 
 ## Concurrency model
 

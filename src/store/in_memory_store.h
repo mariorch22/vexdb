@@ -15,6 +15,9 @@ class InMemoryStore {
     // Append a vector and return its offset.
     Offset add_vector(const float* data);
 
+    // Remove the last appended vector. Only call to roll back a failed insert.
+    void rollback_last();
+
     // Read access.
     const float* get_vector(Offset offset) const;
     std::size_t size() const;

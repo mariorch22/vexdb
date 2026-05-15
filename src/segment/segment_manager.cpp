@@ -114,8 +114,12 @@ SegmentManager SegmentManager::load(const std::string& path) {
         auto pos = content.find("\"" + key + "\"");
         if (pos == std::string::npos) throw std::runtime_error("load: missing key " + key);
         pos = content.find(':', pos);
-        auto val = std::stoull(content.substr(pos + 1));
-        return val;
+        try {
+            return std::stoull(content.substr(pos + 1));
+        } catch (const std::exception& e) {
+            throw std::runtime_error("load: invalid value for key '" + key +
+                                     "' in segments.json: " + e.what());
+        }
     };
 
     Dim dim = static_cast<Dim>(extract_uint("dim"));

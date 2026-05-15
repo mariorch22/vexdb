@@ -38,6 +38,9 @@ struct HnswGraph {
     int layer0_stride() const { return max_m0() + 1; }  // +1 for temporary overflow during pruning
 };
 
+// Not thread-safe: search() writes shared mutable state (visited_gen_, current_gen_).
+// Concurrent searches on the same instance produce silent wrong results.
+// External locking or per-thread instances required for multi-threaded use.
 template <VectorStore Store>
 class HnswIndex {
    public:

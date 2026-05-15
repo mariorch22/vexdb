@@ -1,9 +1,9 @@
 #include "core/sq8.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 #ifdef VEXDB_AVX2
 #include <immintrin.h>
@@ -12,7 +12,7 @@
 namespace vexdb {
 
 SQ8Params sq8_compute_params(const float* vectors, std::size_t n, Dim dim) {
-    assert(n > 0);
+    if (n == 0) throw std::invalid_argument("sq8_compute_params: n must be > 0");
 
     SQ8Params params;
     params.dim = dim;

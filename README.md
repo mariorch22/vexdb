@@ -79,18 +79,18 @@ vexdb::SegmentManager db(/*dim=*/768, /*segment_capacity=*/1000000);
 
 // Insert
 std::vector<float> vec(768, 0.0f);
-db.insert(/*user_id=*/42, vec.data());
+db.insert(/*user_id=*/42, vec);
 
 // Search
 std::vector<float> query(768, 1.0f);
-auto results = db.search(query.data(), /*k=*/10);
+auto results = db.search(query, /*k=*/10);
 for (const auto& r : results) {
     // r.user_id, r.distance
 }
 
 // With persistence
 vexdb::SegmentManager db2(768, 1000000, "path/to/db");
-db2.insert(42, vec.data());
+db2.insert(42, vec);
 db2.save();
 auto loaded = vexdb::SegmentManager::load("path/to/db");
 ```

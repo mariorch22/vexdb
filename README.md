@@ -29,18 +29,24 @@ Code follows STL/snake_case naming convention: types in `PascalCase`, functions 
 
 ## Build
 
-Requires CMake 3.20+, a C++20 compiler (GCC 14+ or Clang 18+).
+Requires CMake 3.20+, Ninja, and a C++20 compiler (GCC 14+ or Clang 18+). Three presets are available:
+
+| Preset | Description |
+|---|---|
+| `dev` | Debug build with ASan + UBSan |
+| `release` | Optimized build |
+| `release-python` | Optimized build + Python bindings |
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+cmake --preset release
+cmake --build build-release
 ```
 
 Run tests and benchmarks:
 
 ```bash
-ctest --test-dir build --output-on-failure
-./build/benchmarks/vexdb_bench
+ctest --test-dir build-release --output-on-failure
+./build-release/benchmarks/vexdb_bench
 ```
 
 ### SIFT1M benchmark (optional)
@@ -49,9 +55,9 @@ Requires the SIFT1M dataset (~160 MB download).
 
 ```bash
 ./benchmarks/sift1m/download.sh
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DVEXDB_BUILD_SIFT1M=ON
-cmake --build build
-cd benchmarks/sift1m && ../../build/benchmarks/sift1m/vexdb_sift1m
+cmake --preset release -DVEXDB_BUILD_SIFT1M=ON
+cmake --build build-release
+./build-release/benchmarks/sift1m/vexdb_sift1m
 ```
 
 Results are written to `benchmarks/sift1m/results.md`.
@@ -61,9 +67,9 @@ Results are written to `benchmarks/sift1m/results.md`.
 Requires Python 3.8+ and NumPy.
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DVEXDB_BUILD_PYTHON=ON
-cmake --build build
-PYTHONPATH=build/python python3 -c "import vexdb; print('ok')"
+cmake --preset release-python
+cmake --build build-release-python
+PYTHONPATH=build-release-python/python python3 -c "import vexdb; print('ok')"
 ```
 
 ## Usage
